@@ -10,6 +10,7 @@ use App\Parameter;
 use PDF;
 use App\Jobs\SendLateEmail;
 use App\Mail\MailPemeliharaan;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
@@ -116,18 +117,31 @@ class PemeliharaanController extends Controller
     //    $user = User::create($userData);
     //    alert()->success('Data Berhasil Ditambahkan', 'Success');
 
-    $to = Carbon::createFromFormat('Y-m-d H:s:i', $request->tanggal_jadwal);
+    $to = Carbon::createFromFormat('Y-m-d H:i:s', $request->tanggal_jadwal);
     $from = Carbon::createFromFormat('Y-m-d H:s:i', date('Y-m-d H:s:i'));
     $diff = $to->diffInMinutes($from);
     // return dd($diff);
     
-    $when = Carbon::now()->addMinutes($diff);
-   
-    $job = \Mail::to($pemeliharaan->user->email)->later($when, new MailPemeliharaan($pemeliharaan));
+    $when = $to;
 
-       return redirect('admin/jadwalPemeliharaan')->with('status','Data Berhasil Di Simpan');
+    $details['to'] = $request->tanggal_jadwal;
+    $details['email'] = $pemeliharaan->user->email;
+    $details['isi'] = $pemeliharaan;
+    
+    
+    dispatch(new \App\Jobs\SendLateEmail($details))->delay($to);
+    // \SendLateMail::dispatch($detail);
+    
+    // echo $when;
+    // dd($details);
+    
+    return redirect('admin/jadwalPemeliharaan')->with('status','Data Berhasil Di Simpan');
        
-       SendLateEmail::dispatch($job);
+    }    
+
+    public function test()
+    {
+        echo Carbon::now()->addMinutes(10);
     }
 
     // public function delete($id)

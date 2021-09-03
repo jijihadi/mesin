@@ -19,6 +19,7 @@ Route::get('/', function () {
 
 Route::group(['middleware'=>['auth']],function(){
     Route::get('/dashboard', 'HomeController@index')->name('dashboard');
+    Route::get('/test', 'PemeliharaanController@test')->name('test');
     Route::prefix('admin')->group(function(){
         // data user
         Route::get('/user', 'UserController@index')->name('user');
